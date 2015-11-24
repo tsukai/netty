@@ -10,8 +10,8 @@ import java.net.Socket;
 import cn.beijing.netty.handler.TimeServerHandler;
 
 /**
- * @author zukai
  * 
+ * @author zukai 2015-11-24
  */
 public class TimeServer {
 	public static void main(String[] args) throws IOException {

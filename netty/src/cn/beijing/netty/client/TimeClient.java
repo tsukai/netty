@@ -10,8 +10,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * @author zukai
- *
+ * 
+ * @author zukai 2015-11-24
  */
 public class TimeClient {
 	public static void main(String[] args) {

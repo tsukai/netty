@@ -9,10 +9,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Date;
-
 /**
- * @author zukai
- *
+ * 
+ * @author zukai 2015-11-24
  */
 public class TimeServerHandler implements Runnable {
 
