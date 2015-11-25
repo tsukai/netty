@@ -22,11 +22,13 @@ public class TimeClientNettyHandler extends ChannelHandlerAdapter {
 		firstMessage.writeBytes(bytes);
 	}
 	
+	//当客户端和服务端tcp链路建立成功之后调用
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		ctx.writeAndFlush(firstMessage);
+		ctx.writeAndFlush(firstMessage);//讲请求消息发送给服务端
 	}
 	
+	//服务端返回应答消息是调用
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg)
 			throws Exception {
