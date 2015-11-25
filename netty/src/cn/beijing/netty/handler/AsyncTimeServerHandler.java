@@ -12,6 +12,7 @@ import java.util.concurrent.CountDownLatch;
  * @author zukai 2015-11-25
  */
 public class AsyncTimeServerHandler implements Runnable {
+	@SuppressWarnings("unused")
 	private int port;
 	CountDownLatch cdl;
 	AsynchronousServerSocketChannel asynchronousServerSocketChannel;//异步的服务端通道
