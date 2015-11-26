@@ -3,21 +3,23 @@
  */
 package cn.beijing.netty.server;
 
+import cn.beijing.netty.handler.TimeServerStackPackHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import cn.beijing.netty.handler.TimeServerHalfPackHandler;
-import cn.beijing.netty.handler.TimeServerNettyHandler;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 
 /**
- * @author zukai 2015-11-25
+ * LineBasedFrameDecoder 解决粘包问题
+ * @author zukai 2015-11-26
  */
-@SuppressWarnings("unused")
-public class TimeServerNetty {
+public class TimeServerNettyStickPack {
 	public static void main(String[] args) throws Exception {
 		int port = 7070;
 		if (args != null && args.length > 0) {
@@ -27,39 +29,33 @@ public class TimeServerNetty {
 				
 			}
 		}
-		new TimeServerNetty().bind(port);
+		new TimeServerNettyStickPack().bind(port);
 	}
 
-	private void bind(int port) throws Exception {
-		//配置服务端的NIO线程组
+	private void bind(int port) throws Exception{
 		EventLoopGroup bossGroup = new NioEventLoopGroup();
 		EventLoopGroup workerGroup = new NioEventLoopGroup();
 		try{
 			ServerBootstrap b = new ServerBootstrap();
-			b.group(bossGroup,workerGroup)
-				.channel(NioServerSocketChannel.class)
+			b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
 				.option(ChannelOption.SO_BACKLOG, 1024)
 				.childHandler(new ChildChannelHandler());
-			//绑定端口，同步等待成功
 			ChannelFuture f = b.bind(port).sync();
-			//等待服务端监听端口关闭
 			f.channel().closeFuture().sync();
 		}finally{
-			//释放线程池资源
 			bossGroup.shutdownGracefully();
 			workerGroup.shutdownGracefully();
 		}
 	}
 	
-	private class ChildChannelHandler extends ChannelInitializer<io.netty.channel.socket.SocketChannel>{
+	private class ChildChannelHandler extends ChannelInitializer<SocketChannel>{
 
 		@Override
-		protected void initChannel(io.netty.channel.socket.SocketChannel arg0)
-				throws Exception {
-//			arg0.pipeline().addLast(new TimeServerNettyHandler());
-			arg0.pipeline().addLast(new TimeServerHalfPackHandler());//读半包
+		protected void initChannel(SocketChannel sc) throws Exception {
+			sc.pipeline().addLast(new LineBasedFrameDecoder(1024));
+			sc.pipeline().addLast(new StringDecoder());
+			sc.pipeline().addLast(new TimeServerStackPackHandler());
 		}
-
 		
 	}
 }
