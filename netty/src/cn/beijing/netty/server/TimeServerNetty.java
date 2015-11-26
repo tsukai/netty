@@ -10,6 +10,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import cn.beijing.netty.handler.TimeServerHalfPackHandler;
 import cn.beijing.netty.handler.TimeServerNettyHandler;
 
 /**
@@ -54,7 +55,8 @@ public class TimeServerNetty {
 		@Override
 		protected void initChannel(io.netty.channel.socket.SocketChannel arg0)
 				throws Exception {
-			arg0.pipeline().addLast(new TimeServerNettyHandler());
+//			arg0.pipeline().addLast(new TimeServerNettyHandler());
+			arg0.pipeline().addLast(new TimeServerHalfPackHandler());//读半包
 		}
 
 		

@@ -3,6 +3,7 @@
  */
 package cn.beijing.netty.client;
 
+import cn.beijing.netty.handler.TimeClientHalfPackHandler;
 import cn.beijing.netty.handler.TimeClientNettyHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -41,7 +42,8 @@ public class TimeClientNetty {
 					@Override
 					protected void initChannel(SocketChannel ch)
 							throws Exception {
-						ch.pipeline().addLast(new TimeClientNettyHandler());
+//						ch.pipeline().addLast(new TimeClientNettyHandler());
+						ch.pipeline().addLast(new TimeClientHalfPackHandler());//读半包
 					}
 					
 				});
