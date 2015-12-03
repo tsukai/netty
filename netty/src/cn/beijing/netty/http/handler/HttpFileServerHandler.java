@@ -15,9 +15,7 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderUtil;
-import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -47,15 +45,15 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 	@Override
 	protected void messageReceived(ChannelHandlerContext ctx,
 			FullHttpRequest request) throws Exception {
-		if(!request.decoderResult().isSuccess()){//判断请求消息的解码结果
+		if(!request.getDecoderResult().isSuccess()){//判断请求消息的解码结果
 			sendError(ctx,HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if(request.method() != HttpMethod.GET){
+		if(request.getMethod() != HttpMethod.GET){
 			sendError(ctx,HttpResponseStatus.METHOD_NOT_ALLOWED);
 			return;
 		}
-		final String uri = request.uri();
+		final String uri = request.getUri();
 		final String path = sanitizeUri(uri);
 		if(path == null){
 			sendError(ctx,HttpResponseStatus.FORBIDDEN);
@@ -87,10 +85,10 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 		}
 		long fileLength = randomAccessFile.length();
 		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-		HttpHeaderUtil.setContentLength(response,fileLength);
+		HttpHeaders.setContentLength(response,fileLength);
 		setContentTypeHeader(response,file);
-		if(HttpHeaderUtil.isKeepAlive(request)){
-			response.headers().set(HttpHeaderNames.CONNECTION,HttpHeaderValues.KEEP_ALIVE);
+		if(HttpHeaders.isKeepAlive(request)){
+			response.headers().set(HttpHeaders.Names.CONNECTION,HttpHeaders.Values.KEEP_ALIVE);
 		}
 		ctx.write(response);
 		ChannelFuture sendFileFuture;
@@ -115,7 +113,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 		});
 		
 		ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);//发送编码结束的空消息体
-		if(!HttpHeaderUtil.isKeepAlive(request)){
+		if(!HttpHeaders.isKeepAlive(request)){
 			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 		}
 	}
@@ -157,7 +155,7 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 	private static final Pattern ALLOWED_FILE_NAME = Pattern.compile("[A-Za-z0-9][-_A-Za-z0-9\\.]*");
 	private static void sendListing(ChannelHandlerContext ctx,File dir){
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-		response.headers().set(HttpHeaderNames.CONTENT_TYPE,"text/html;charset=UTF-8");
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE,"text/html;charset=UTF-8");
 		StringBuilder buf = new StringBuilder();
 		String dirPath = dir.getPath();
 		buf.append("<!DOCTYPE html>\r\n");
@@ -193,18 +191,18 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
 
 	private static void sendRedirect(ChannelHandlerContext ctx,String newUri){
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FOUND);
-		response.headers().set(HttpHeaderNames.LOCATION, newUri);
+		response.headers().set(HttpHeaders.Names.LOCATION, newUri);
 		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 	}
 	
 	public static void sendError(ChannelHandlerContext ctx,HttpResponseStatus status){
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status,Unpooled.copiedBuffer("Failure: "+status.toString()+"\r\n",CharsetUtil.UTF_8));
-		response.headers().set(HttpHeaderNames.CONTENT_TYPE,"text/plain; charset=UTF-8");
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE,"text/plain; charset=UTF-8");
 		ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 	}
 
 	private static void setContentTypeHeader(HttpResponse response,File file){
 		MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
-		response.headers().set(HttpHeaderNames.CONTENT_TYPE,mimetypesFileTypeMap.getContentType(file.getPath()));
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE,mimetypesFileTypeMap.getContentType(file.getPath()));
 	}
 }
